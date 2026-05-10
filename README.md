@@ -368,7 +368,7 @@ Give a ⭐️ if this project helped you!
 
 ## 📞 Support
 
-For support, email your-email@example.com or open an issue in the repository.
+For support, email dbose0906@gmail.com or open an issue in the repository.
 
 ---
 
