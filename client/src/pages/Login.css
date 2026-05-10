@@ -92,3 +92,26 @@
   margin-top: 20px;
   color: #666;
 }
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-field input.error {
+  border-color: #c62828;
+}
+
+.field-error {
+  color: #c62828;
+  font-size: 12px;
+  margin-top: -10px;
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 30px 20px;
+    margin: 20px;
+  }
+}

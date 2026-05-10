@@ -9,21 +9,22 @@ const Dashboard = () => {
   const [formData, setFormData] = useState({ title: '', description: '' });
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
   const fetchTasks = async () => {
     try {
+      setLoading(true);
       const response = await getTasks();
-      setTasks(response.data);
+      // Handle both old and new API response formats
+      const tasksData = response.data.tasks || response.data;
+      setTasks(Array.isArray(tasksData) ? tasksData : []);
+      setError('');
     } catch (err) {
-      setError('Failed to load tasks');
+      setError(err.message || 'Failed to load tasks');
       if (err.response?.status === 401) {
         handleLogout();
       }
@@ -31,6 +32,11 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -40,7 +46,24 @@ const Dashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.title.trim()) {
+      setError('Task title is required');
+      return;
+    }
+
+    if (formData.title.length > 200) {
+      setError('Task title must not exceed 200 characters');
+      return;
+    }
+
+    if (formData.description.length > 1000) {
+      setError('Description must not exceed 1000 characters');
+      return;
+    }
+
     setError('');
+    setSubmitting(true);
 
     try {
       if (editingTask) {
@@ -50,15 +73,18 @@ const Dashboard = () => {
         await createTask(formData);
       }
       setFormData({ title: '', description: '' });
-      fetchTasks();
+      await fetchTasks();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save task');
+      setError(err.message || 'Failed to save task');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleEdit = (task) => {
     setEditingTask(task);
-    setFormData({ title: task.title, description: task.description });
+    setFormData({ title: task.title, description: task.description || '' });
+    setError('');
   };
 
   const handleDelete = async (id) => {
@@ -66,24 +92,27 @@ const Dashboard = () => {
 
     try {
       await deleteTask(id);
-      fetchTasks();
+      await fetchTasks();
+      setError('');
     } catch (err) {
-      setError('Failed to delete task');
+      setError(err.message || 'Failed to delete task');
     }
   };
 
   const handleToggleStatus = async (id) => {
     try {
       await toggleTaskStatus(id);
-      fetchTasks();
+      await fetchTasks();
+      setError('');
     } catch (err) {
-      setError('Failed to update task status');
+      setError(err.message || 'Failed to update task status');
     }
   };
 
   const cancelEdit = () => {
     setEditingTask(null);
     setFormData({ title: '', description: '' });
+    setError('');
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -92,7 +121,7 @@ const Dashboard = () => {
   });
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">Loading tasks...</div>;
   }
 
   return (
@@ -100,7 +129,7 @@ const Dashboard = () => {
       <header className="dashboard-header">
         <h1>Task Tracker</h1>
         <div className="user-info">
-          <span>Welcome, {user.username}!</span>
+          <span>Welcome, {user.username || 'User'}!</span>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </header>
@@ -112,23 +141,32 @@ const Dashboard = () => {
           <form onSubmit={handleSubmit} className="task-form">
             <input
               type="text"
-              placeholder="Task title"
+              placeholder="Task title *"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              maxLength={200}
               required
+              disabled={submitting}
             />
             <textarea
               placeholder="Task description (optional)"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows="3"
+              maxLength={1000}
+              disabled={submitting}
             />
             <div className="form-buttons">
-              <button type="submit" className="submit-btn">
-                {editingTask ? 'Update Task' : 'Add Task'}
+              <button type="submit" className="submit-btn" disabled={submitting}>
+                {submitting ? 'Saving...' : editingTask ? 'Update Task' : 'Add Task'}
               </button>
               {editingTask && (
-                <button type="button" onClick={cancelEdit} className="cancel-btn">
+                <button 
+                  type="button" 
+                  onClick={cancelEdit} 
+                  className="cancel-btn"
+                  disabled={submitting}
+                >
                   Cancel
                 </button>
               )}
@@ -163,7 +201,11 @@ const Dashboard = () => {
 
           <div className="tasks-list">
             {filteredTasks.length === 0 ? (
-              <p className="no-tasks">No tasks found. Create one above!</p>
+              <p className="no-tasks">
+                {filter === 'all' 
+                  ? 'No tasks yet. Create one above!' 
+                  : `No ${filter} tasks found.`}
+              </p>
             ) : (
               filteredTasks.map(task => (
                 <div key={task._id} className={`task-card ${task.status}`}>
@@ -174,27 +216,36 @@ const Dashboard = () => {
                         {task.status}
                       </span>
                     </div>
-                    <p className="task-description">{task.description}</p>
+                    {task.description && (
+                      <p className="task-description">{task.description}</p>
+                    )}
                     <small className="task-date">
-                      Created: {new Date(task.createdAt).toLocaleDateString()}
+                      Created: {new Date(task.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
                     </small>
                   </div>
                   <div className="task-actions">
                     <button
                       onClick={() => handleToggleStatus(task._id)}
                       className="toggle-btn"
+                      title={task.status === 'pending' ? 'Mark as complete' : 'Mark as pending'}
                     >
                       {task.status === 'pending' ? '✓ Complete' : '↺ Undo'}
                     </button>
                     <button
                       onClick={() => handleEdit(task)}
                       className="edit-btn"
+                      title="Edit task"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(task._id)}
                       className="delete-btn"
+                      title="Delete task"
                     >
                       Delete
                     </button>
@@ -210,3 +261,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+// Made with Bob

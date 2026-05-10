@@ -1,0 +1,12 @@
+name = "task-tracker-api"
+main = "server/server.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "task-tracker-api-production"
+
+# Environment variables (set these in Cloudflare dashboard or via CLI)
+# MONGODB_URI
+# JWT_SECRET
+# ALLOWED_ORIGINS
+# NODE_ENV=production
