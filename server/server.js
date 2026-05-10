@@ -24,6 +24,9 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 
+// Trust proxy - REQUIRED for Railway deployment
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
