@@ -6,6 +6,14 @@ A modern, production-ready task management application built with the MERN stack
 ![Node](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen)
 ![React](https://img.shields.io/badge/react-18.2.0-blue)
 
+## 🌐 Live Demo
+
+- **Frontend**: [https://tasktracker-b06.pages.dev](https://tasktracker-b06.pages.dev)
+- **Backend API**: [https://tasktracker-production-fae7.up.railway.app](https://tasktracker-production-fae7.up.railway.app)
+- **Health Check**: [https://tasktracker-production-fae7.up.railway.app/health](https://tasktracker-production-fae7.up.railway.app/health)
+
+> **Note**: The application is deployed on Cloudflare Pages (frontend) and Railway (backend) with MongoDB Atlas as the database.
+
 ## ✨ Features
 
 - 🔐 **Secure Authentication** - JWT-based auth with bcrypt password hashing
@@ -98,8 +106,8 @@ task-tracker/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/task-tracker.git
-   cd task-tracker
+   git clone https://github.com/yooniqx/TaskTracker.git
+   cd TaskTracker
    ```
 
 2. **Install all dependencies**
@@ -199,66 +207,70 @@ task-tracker/
 
 ## 🚀 Deployment
 
-### Cloudflare Pages (Frontend)
+This application is currently deployed and running in production:
 
-1. **Build the frontend**
-   ```bash
-   cd client
-   npm run build
+- **Frontend**: Cloudflare Pages - [https://tasktracker-b06.pages.dev](https://tasktracker-b06.pages.dev)
+- **Backend**: Railway - [https://tasktracker-production-fae7.up.railway.app](https://tasktracker-production-fae7.up.railway.app)
+- **Database**: MongoDB Atlas (Cloud)
+
+### Deploy Your Own Instance
+
+#### Frontend Deployment (Cloudflare Pages)
+
+1. **Fork this repository** on GitHub
+
+2. **Go to Cloudflare Pages**
+   - Visit [https://dash.cloudflare.com](https://dash.cloudflare.com)
+   - Navigate to Workers & Pages → Create application → Pages
+   - Click "Connect to Git"
+
+3. **Configure Build Settings**
+   - **Framework preset**: React (Vite) or None
+   - **Build command**: `cd client && npm install && npm run build`
+   - **Build output directory**: `client/build`
+   - **Root directory**: Leave empty
+
+4. **Add Environment Variable**
+   - **Variable name**: `REACT_APP_API_URL`
+   - **Value**: `https://your-backend-url.railway.app/api`
+
+5. **Deploy** - Cloudflare will build and deploy your app (takes 3-5 minutes)
+
+#### Backend Deployment (Railway)
+
+1. **Create Railway Account**
+   - Visit [https://railway.app](https://railway.app)
+   - Sign up with GitHub
+
+2. **Create New Project**
+   - Click "New Project"
+   - Select "Deploy from GitHub repo"
+   - Choose your forked repository
+
+3. **Configure Environment Variables**
+   ```env
+   NODE_ENV=production
+   PORT=8080
+   MONGODB_URI=your_mongodb_atlas_connection_string
+   JWT_SECRET=your_super_secret_jwt_key_min_32_chars
+   ALLOWED_ORIGINS=https://your-frontend-url.pages.dev
+   RATE_LIMIT_WINDOW_MS=900000
+   RATE_LIMIT_MAX_REQUESTS=100
    ```
 
-2. **Deploy to Cloudflare Pages**
-   - Connect your GitHub repository to Cloudflare Pages
-   - Set build command: `cd client && npm install && npm run build`
-   - Set build output directory: `client/build`
-   - Add environment variable: `REACT_APP_API_URL=https://your-api-url.com/api`
+4. **Configure Networking**
+   - Go to Settings → Networking
+   - Set port to `8080` (or your PORT value)
+   - Railway will provide a public URL
 
-### Cloudflare Workers (Backend) or Any Node.js Host
+5. **Deploy** - Railway will automatically deploy on every push to main branch
 
-#### Option 1: Traditional Node.js Hosting (Recommended)
+#### Important Notes
 
-Deploy to platforms like:
-- **Railway**: https://railway.app
-- **Render**: https://render.com
-- **Heroku**: https://heroku.com
-- **DigitalOcean App Platform**: https://www.digitalocean.com/products/app-platform
-
-**Environment Variables to Set:**
-```env
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_production_jwt_secret
-ALLOWED_ORIGINS=https://your-frontend-domain.com
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-#### Option 2: Cloudflare Workers (Advanced)
-
-Note: Cloudflare Workers have limitations with traditional Node.js apps. Consider using Cloudflare Workers for API routes with edge computing benefits.
-
-1. Install Wrangler CLI:
-   ```bash
-   npm install -g wrangler
-   ```
-
-2. Login to Cloudflare:
-   ```bash
-   wrangler login
-   ```
-
-3. Set environment variables:
-   ```bash
-   wrangler secret put MONGODB_URI
-   wrangler secret put JWT_SECRET
-   wrangler secret put ALLOWED_ORIGINS
-   ```
-
-4. Deploy:
-   ```bash
-   wrangler deploy
-   ```
+- **Trust Proxy**: The backend includes `app.set('trust proxy', 1)` for Railway deployment
+- **CORS**: Update `ALLOWED_ORIGINS` with your Cloudflare Pages URL (without `/login` or any path)
+- **MongoDB**: Use MongoDB Atlas connection string with proper credentials
+- **JWT Secret**: Use a strong, random secret (minimum 32 characters)
 
 ### MongoDB Atlas Setup
 
@@ -336,9 +348,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👤 Author
 
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
+**Debopriya Bose**
+- GitHub: [@yooniqx](https://github.com/yooniqx)
+- Repository: [TaskTracker](https://github.com/yooniqx/TaskTracker)
 
 ## 🤝 Contributing
 
